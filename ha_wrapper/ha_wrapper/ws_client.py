@@ -1,1 +1,0 @@
-# WebSocket Client for Home Assistant 

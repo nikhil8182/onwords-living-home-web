@@ -7,7 +7,10 @@ import re
 
 # Load environment variables from config.env file
 if os.path.exists('config.env'):
+    print("Loading configuration from config.env")
     load_dotenv('config.env')
+else:
+    print("config.env file not found! Using environment variables.")
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev_key_for_testing')

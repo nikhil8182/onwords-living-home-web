@@ -1,1 +1,0 @@
-# Example usage of the Home Assistant wrapper 

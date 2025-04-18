@@ -1,1 +1,0 @@
-# API Client for Home Assistant 
