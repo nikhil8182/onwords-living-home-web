@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Switches by Room - Home Assistant Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Switches by Room</h1>
+        <nav>
+            <a href="{{ url_for('index') }}">Dashboard</a> |
+            <a href="{{ url_for('call_service') }}">Call Service</a>
+        </nav>
+    </header>
+
+    <main>
+        {% if rooms %}
+            {% for room, entities in rooms.items() %}
+                <section class="room-section" id="room-{{ room|lower|replace(' ', '-') }}">
+                    <h2>{{ room }}</h2>
+                    <div class="entity-grid">
+                        {% for entity in entities %}
+                            <div class="entity-card {{ 'active' if entity.state == 'on' else '' }}">
+                                <h3>{{ entity.attributes.friendly_name or entity.entity_id }}</h3>
+                                <p class="state">State: {{ entity.state }}</p>
+                                
+                                <button class="toggle-btn" data-entity="{{ entity.entity_id }}">
+                                    {% if entity.state == 'on' %}Turn Off{% else %}Turn On{% endif %}
+                                </button>
+                                
+                                <a href="{{ url_for('entity_detail', entity_id=entity.entity_id) }}" class="detail-link">Details</a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endfor %}
+        {% else %}
+            <div class="no-entities">
+                <h2>No Switches Found</h2>
+                <p>No switch entities were found in your Home Assistant instance.</p>
+            </div>
+        {% endif %}
+    </main>
+
+    <script>
+        $(document).ready(function() {
+            // Handle toggle buttons
+            $('.toggle-btn').on('click', function() {
+                const entityId = $(this).data('entity');
+                const card = $(this).closest('.entity-card');
+                
+                $.ajax({
+                    url: '/toggle/' + entityId,
+                    method: 'POST',
+                    success: function(response) {
+                        if (response.success) {
+                            // Toggle the button text and card class
+                            const btn = card.find('.toggle-btn');
+                            if (btn.text() === 'Turn Off') {
+                                btn.text('Turn On');
+                                card.removeClass('active');
+                                card.find('.state').text('State: off');
+                            } else {
+                                btn.text('Turn Off');
+                                card.addClass('active');
+                                card.find('.state').text('State: on');
+                            }
+                        } else {
+                            alert('Error: ' + response.error);
+                        }
+                    },
+                    error: function() {
+                        alert('Failed to communicate with the server');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

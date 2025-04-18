@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Home Assistant Connection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Home Assistant Setup</h1>
+    </header>
+
+    <main class="setup">
+        <div class="setup-card">
+            <h2>Home Assistant Configuration Required</h2>
+            <p>To use this application, you need to provide your Home Assistant details:</p>
+            
+            <h3>Option 1: Using config.env File (Recommended)</h3>
+            <p>Edit the <code>config.env</code> file in the application directory:</p>
+            <pre>
+# Home Assistant Configuration
+HA_URL=http://your-home-assistant-url:8123
+HA_TOKEN=your_long_lived_access_token
+            </pre>
+            
+            <h3>Option 2: Using Environment Variables</h3>
+            <p>Set the following environment variables:</p>
+            <pre>
+export HA_URL=http://your-home-assistant-url:8123
+export HA_TOKEN=your_long_lived_access_token
+            </pre>
+            
+            <h3>How to Create a Long-Lived Access Token</h3>
+            <ol>
+                <li>In Home Assistant, click on your user profile from the sidebar</li>
+                <li>Scroll to the bottom to the "Long-Lived Access Tokens" section</li>
+                <li>Click "Create Token"</li>
+                <li>Give it a name like "Flask App" and click "OK"</li>
+                <li>Copy the token (you won't be able to see it again)</li>
+                <li>Set the token in the config.env file or as an environment variable</li>
+            </ol>
+            
+            <h3>Restart the Application</h3>
+            <p>After setting the configuration, restart this application.</p>
+        </div>
+    </main>
+</body>
+</html> 

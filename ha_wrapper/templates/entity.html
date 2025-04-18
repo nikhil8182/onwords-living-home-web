@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entity: {{ entity.attributes.friendly_name or entity.entity_id }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Entity: {{ entity.attributes.friendly_name or entity.entity_id }}</h1>
+        <nav>
+            <a href="{{ url_for('index') }}">Back to Dashboard</a> |
+            <a href="{{ url_for('call_service') }}">Call Service</a>
+        </nav>
+    </header>
+
+    <main class="entity-detail">
+        <section class="entity-info">
+            <div class="entity-card detail {{ 'active' if entity.state == 'on' else '' }}">
+                <h2>{{ entity.attributes.friendly_name or entity.entity_id }}</h2>
+                <p><strong>Entity ID:</strong> {{ entity.entity_id }}</p>
+                <p><strong>State:</strong> {{ entity.state }}</p>
+                <p><strong>Last Updated:</strong> {{ entity.last_updated }}</p>
+                
+                {% set domain = entity.entity_id.split('.')[0] %}
+                {% if domain in ['light', 'switch'] %}
+                    <button class="toggle-btn" data-entity="{{ entity.entity_id }}">
+                        {% if entity.state == 'on' %}Turn Off{% else %}Turn On{% endif %}
+                    </button>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="attributes">
+            <h2>Attributes</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key, value in entity.attributes.items() %}
+                    <tr>
+                        <td>{{ key }}</td>
+                        <td>
+                            {% if value is mapping %}
+                                <pre>{{ value|tojson(indent=2) }}</pre>
+                            {% elif value is iterable and value is not string %}
+                                <pre>{{ value|tojson(indent=2) }}</pre>
+                            {% else %}
+                                {{ value }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <script>
+        $(document).ready(function() {
+            // Handle toggle button
+            $('.toggle-btn').on('click', function() {
+                const entityId = $(this).data('entity');
+                const card = $(this).closest('.entity-card');
+                
+                $.ajax({
+                    url: '/toggle/' + entityId,
+                    method: 'POST',
+                    success: function(response) {
+                        if (response.success) {
+                            // Reload the page to show updated state
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.error);
+                        }
+                    },
+                    error: function() {
+                        alert('Failed to communicate with the server');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

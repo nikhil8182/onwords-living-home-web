@@ -1,0 +1,1 @@
+# Core logic for the Home Assistant wrapper 

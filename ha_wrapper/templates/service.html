@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Call Home Assistant Service</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Call Home Assistant Service</h1>
+        <nav>
+            <a href="{{ url_for('index') }}">Back to Dashboard</a>
+        </nav>
+    </header>
+
+    <main class="service-form">
+        <div class="form-card">
+            <h2>Call a Service</h2>
+            <form id="service-call-form">
+                <div class="form-group">
+                    <label for="domain">Domain:</label>
+                    <input type="text" id="domain" name="domain" required placeholder="e.g., light, switch, etc.">
+                </div>
+                
+                <div class="form-group">
+                    <label for="service">Service:</label>
+                    <input type="text" id="service" name="service" required placeholder="e.g., turn_on, turn_off, etc.">
+                </div>
+                
+                <div class="form-group">
+                    <label for="entity_id">Entity ID (optional):</label>
+                    <input type="text" id="entity_id" name="entity_id" placeholder="e.g., light.living_room">
+                </div>
+                
+                <button type="submit" class="submit-btn">Call Service</button>
+            </form>
+            
+            <div id="result-container" style="display: none;">
+                <h3>Result:</h3>
+                <pre id="result-output"></pre>
+            </div>
+        </div>
+        
+        <div class="common-services">
+            <h2>Common Services</h2>
+            <div class="service-list">
+                <button class="quick-service" data-domain="light" data-service="turn_on">Turn On Light</button>
+                <button class="quick-service" data-domain="light" data-service="turn_off">Turn Off Light</button>
+                <button class="quick-service" data-domain="switch" data-service="turn_on">Turn On Switch</button>
+                <button class="quick-service" data-domain="switch" data-service="turn_off">Turn Off Switch</button>
+                <button class="quick-service" data-domain="automation" data-service="trigger">Trigger Automation</button>
+                <button class="quick-service" data-domain="homeassistant" data-service="restart">Restart Home Assistant</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        $(document).ready(function() {
+            // Handle form submission
+            $('#service-call-form').on('submit', function(e) {
+                e.preventDefault();
+                
+                const domain = $('#domain').val();
+                const service = $('#service').val();
+                const entityId = $('#entity_id').val();
+                
+                callService(domain, service, entityId);
+            });
+            
+            // Handle quick service buttons
+            $('.quick-service').on('click', function() {
+                const domain = $(this).data('domain');
+                const service = $(this).data('service');
+                
+                // Pre-fill the form
+                $('#domain').val(domain);
+                $('#service').val(service);
+                
+                // If it's a restart, confirm first
+                if (domain === 'homeassistant' && service === 'restart') {
+                    if (!confirm('Are you sure you want to restart Home Assistant?')) {
+                        return;
+                    }
+                }
+                
+                // Call the service if entity ID is not required or already provided
+                if (domain === 'homeassistant' || domain === 'automation' || $('#entity_id').val()) {
+                    callService(domain, service, $('#entity_id').val());
+                } else {
+                    // Focus the entity field so user can fill it in
+                    $('#entity_id').focus();
+                }
+            });
+            
+            function callService(domain, service, entityId) {
+                // Disable the form while calling
+                $('.submit-btn').prop('disabled', true).text('Calling...');
+                
+                $.ajax({
+                    url: '/service',
+                    method: 'POST',
+                    data: {
+                        domain: domain,
+                        service: service,
+                        entity_id: entityId
+                    },
+                    success: function(response) {
+                        // Show the result
+                        $('#result-container').show();
+                        
+                        if (response.success) {
+                            $('#result-output').text(JSON.stringify(response.result, null, 2));
+                            $('#result-output').removeClass('error').addClass('success');
+                        } else {
+                            $('#result-output').text('Error: ' + response.error);
+                            $('#result-output').removeClass('success').addClass('error');
+                        }
+                        
+                        // Re-enable the form
+                        $('.submit-btn').prop('disabled', false).text('Call Service');
+                    },
+                    error: function() {
+                        $('#result-container').show();
+                        $('#result-output').text('Failed to communicate with the server');
+                        $('#result-output').removeClass('success').addClass('error');
+                        
+                        // Re-enable the form
+                        $('.submit-btn').prop('disabled', false).text('Call Service');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html> 
